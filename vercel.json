@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "prospector-backend/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "prospector-frontend/index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "prospector-backend/server.js"
+    },
+    {
+      "src": "/exports/(.*)",
+      "dest": "prospector-backend/server.js"
+    },
+    {
+      "src": "/buscar",
+      "dest": "prospector-backend/server.js"
+    },
+    {
+      "src": "/status",
+      "dest": "prospector-backend/server.js"
+    },
+    {
+      "src": "/download/(.*)",
+      "dest": "prospector-backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "prospector-frontend/index.html"
+    }
+  ]
+}

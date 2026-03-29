@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prospector — Busca Inteligente de Empresas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #13131c;
+      --surface2:  #1c1c2a;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #6ee7b7;
+      --accent2:   #3b82f6;
+      --warn:      #f59e0b;
+      --danger:    #ef4444;
+      --text:      #e8e8f0;
+      --muted:     #6b7280;
+      --alta:      rgba(110,231,183,0.12);
+      --media:     rgba(245,158,11,0.12);
+      --baixa:     rgba(107,114,128,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Background grid ──────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(110,231,183,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(110,231,183,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Layout ───────────────────────────────────────────────────── */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── Header ───────────────────────────────────────────────────── */
+    header {
+      padding: 56px 0 40px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(110,231,183,0.1);
+      border: 1px solid rgba(110,231,183,0.25);
+      color: var(--accent);
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.4rem, 6vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 300;
+    }
+
+    /* ─── Search Card ──────────────────────────────────────────────── */
+    .search-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 0 60px rgba(110,231,183,0.04);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 180px;
+      position: relative;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .input-group input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: rgba(110,231,183,0.4);
+    }
+
+    .input-group input::placeholder { color: var(--muted); }
+
+    .btn-buscar {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 28px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      min-width: 130px;
+    }
+
+    .btn-buscar:hover  { background: #a7f3d0; transform: translateY(-1px); }
+    .btn-buscar:active { transform: translateY(0); }
+    .btn-buscar:disabled {
+      opacity: 0.5; cursor: not-allowed; transform: none;
+    }
+
+    /* ─── Status bar ───────────────────────────────────────────────── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 14px;
+      min-height: 20px;
+    }
+
+    .status-bar.loading { color: var(--accent); }
+    .status-bar.error   { color: var(--danger); }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(110,231,183,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Results header ───────────────────────────────────────────── */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .results-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .results-count {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(110,231,183,0.12);
+      border: 1px solid rgba(110,231,183,0.3);
+      color: var(--accent);
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-download:hover {
+      background: rgba(110,231,183,0.2);
+    }
+
+    /* ─── Empresa Card ─────────────────────────────────────────────── */
+    .empresas-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .empresa-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      transition: border-color 0.2s, transform 0.15s;
+      animation: fadeIn 0.3s ease both;
+    }
+
+    .empresa-card:hover {
+      border-color: rgba(110,231,183,0.2);
+      transform: translateX(3px);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .empresa-card.alta  { border-left: 3px solid var(--accent); }
+    .empresa-card.media { border-left: 3px solid var(--warn); }
+    .empresa-card.baixa { border-left: 3px solid #444; }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .empresa-nome {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .prioridade-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+      flex-shrink: 0;
+    }
+
+    .prioridade-tag.alta  { background: rgba(110,231,183,0.15); color: var(--accent); }
+    .prioridade-tag.media { background: rgba(245,158,11,0.15);  color: var(--warn); }
+    .prioridade-tag.baixa { background: rgba(107,114,128,0.15); color: var(--muted); }
+
+    .empresa-resumo {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    .card-body {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .card-section {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .contato-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .contato-item .nome { color: #fff; font-weight: 500; }
+    .contato-item .cargo { color: var(--muted); }
+
+    .links-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .link-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: all 0.15s;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .link-pill:hover  { color: #fff; border-color: rgba(255,255,255,0.2); }
+    .link-pill.whats  { color: #25d366; border-color: rgba(37,211,102,0.3); }
+    .link-pill.whats:hover { background: rgba(37,211,102,0.1); }
+
+    /* ─── Empty/error states ───────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--muted);
+    }
+
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ─── Aviso ────────────────────────────────────────────────────── */
+    .aviso {
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.25);
+      color: var(--warn);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    /* ─── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .search-row { flex-direction: column; }
+      .btn-buscar { width: 100%; }
+      .search-card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="badge">IA · Prospecção Comercial</div>
+    <h1>Encontre seus<br/><span>próximos clientes</span></h1>
+    <p class="subtitle">Busca inteligente de empresas com extração automática de contatos</p>
+  </header>
+
+  <!-- Search Card -->
+  <div class="search-card">
+    <div class="search-row">
+      <div class="input-group">
+        <label>Região</label>
+        <input id="inp-regiao" type="text" placeholder="Ex: Anápolis GO, Brasília DF…" />
+      </div>
+      <div class="input-group">
+        <label>Setor</label>
+        <input id="inp-setor" type="text" placeholder="Ex: construtoras, clínicas, lojas…" />
+      </div>
+      <button class="btn-buscar" id="btn-buscar" onclick="buscar()">
+        Buscar →
+      </button>
+    </div>
+    <div class="status-bar" id="status-bar"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-area" style="display:none">
+    <div class="results-header">
+      <div>
+        <div class="results-title">Resultados</div>
+        <div class="results-count" id="results-count"></div>
+      </div>
+      <a class="btn-download" id="btn-excel" href="#" download style="display:none">
+        ↓ Baixar Excel
+      </a>
+    </div>
+    <div class="empresas-grid" id="empresas-grid"></div>
+  </div>
+
+  <!-- Empty state inicial -->
+  <div class="empty-state" id="empty-state">
+    <div class="icon">🔍</div>
+    <p>Informe uma região e setor para começar a prospecção</p>
+  </div>
+
+</div>
+
+<script>
+  // Em desenvolvimento local aponta para localhost:3001
+  // Em produção (Vercel) usa a mesma origem da página (sem porta)
+  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001'
+    : '';
+
+  function setStatus(msg, tipo = '') {
+    const el = document.getElementById('status-bar');
+    el.className = 'status-bar ' + tipo;
+    el.innerHTML = tipo === 'loading'
+      ? `<div class="spinner"></div> ${msg}`
+      : msg;
+  }
+
+  async function buscar() {
+    const regiao = document.getElementById('inp-regiao').value.trim();
+    const setor  = document.getElementById('inp-setor').value.trim();
+
+    if (!regiao || !setor) {
+      setStatus('⚠️ Preencha região e setor.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-buscar');
+    btn.disabled = true;
+    btn.textContent = 'Buscando…';
+
+    document.getElementById('results-area').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('empresas-grid').innerHTML = '';
+
+    setStatus('Buscando no Google e processando com IA…', 'loading');
+
+    try {
+      const res  = await fetch(`${API}/buscar`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ regiao, setor }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatus(`❌ Erro: ${data.erro}`, 'error');
+        document.getElementById('empty-state').style.display = 'block';
+        return;
+      }
+
+      if (data.aviso) {
+        document.getElementById('results-area').style.display = 'block';
+        document.getElementById('results-area').insertAdjacentHTML(
+          'afterbegin',
+          `<div class="aviso">⚠️ ${data.aviso}</div>`
+        );
+      }
+
+      renderEmpresas(data.empresas || []);
+
+      if (data.excel_url) {
+        const btnExcel = document.getElementById('btn-excel');
+        btnExcel.href = data.excel_url;
+        btnExcel.style.display = 'inline-flex';
+      }
+
+      const total = (data.empresas || []).length;
+      document.getElementById('results-count').textContent =
+        `${total} empresa${total !== 1 ? 's' : ''} encontrada${total !== 1 ? 's' : ''}`;
+
+      setStatus(`✅ Concluído — ${total} empresas extraídas`);
+
+    } catch (err) {
+      setStatus('❌ Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');
+      document.getElementById('empty-state').style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Buscar →';
+      document.getElementById('results-area').style.display = 'block';
+    }
+  }
+
+  function renderEmpresas(empresas) {
+    const grid = document.getElementById('empresas-grid');
+
+    if (!empresas.length) {
+      grid.innerHTML = `<div class="empty-state"><div class="icon">😶</div><p>Nenhuma empresa encontrada. Tente outro setor ou região.</p></div>`;
+      return;
+    }
+
+    const cards = empresas.map((e, i) => {
+      const p = (e.prioridade || 'Baixa').toLowerCase()
+        .normalize('NFD').replace(/\p{Diacritic}/gu, '');
+
+      const linksHtml = buildLinks(e);
+      const contatosHtml = buildContatos(e.contatos || []);
+
+      return `
+        <div class="empresa-card ${p}" style="animation-delay:${i * 0.04}s">
+          <div class="card-top">
+            <div class="empresa-nome">${e.nome_empresa || '—'}</div>
+            <span class="prioridade-tag ${p}">${e.prioridade || 'Baixa'}</span>
+          </div>
+          ${e.resumo_negocio ? `<p class="empresa-resumo">${e.resumo_negocio}</p>` : ''}
+          <div class="card-body">
+            ${contatosHtml}
+            ${e.cidade_uf ? `
+              <div class="card-section">
+                <div class="section-label">Localização</div>
+                <div style="font-size:13px; color:var(--muted)">${e.cidade_uf}</div>
+                ${e.cnpj ? `<div style="font-size:12px; color:var(--muted); margin-top:4px">CNPJ: ${e.cnpj}</div>` : ''}
+              </div>` : ''}
+          </div>
+          ${linksHtml}
+        </div>`;
+    });
+
+    grid.innerHTML = cards.join('');
+  }
+
+  function buildContatos(contatos) {
+    if (!contatos.length) return '';
+    return `
+      <div class="card-section">
+        <div class="section-label">Contatos</div>
+        ${contatos.slice(0, 3).map(c => `
+          <div class="contato-item">
+            👤
+            <span class="nome">${c.nome || '—'}</span>
+            <span class="cargo">${c.cargo ? '· ' + c.cargo : ''}</span>
+          </div>
+          ${c.telefone ? `<div style="font-size:12px; color:var(--muted); padding-left:20px; margin-bottom:4px">${c.telefone}</div>` : ''}
+        `).join('')}
+      </div>`;
+  }
+
+  function buildLinks(e) {
+    const links = [];
+
+    const tel0 = e.contatos?.[0]?.telefone || e.telefone_empresa || '';
+    const telLimpo = tel0.replace(/\D/g, '');
+    if (telLimpo) {
+      links.push(`<a class="link-pill whats" href="https://wa.me/55${telLimpo}" target="_blank" rel="noreferrer">💬 WhatsApp</a>`);
+    }
+    if (e.instagram) {
+      links.push(`<a class="link-pill" href="https://instagram.com/${e.instagram.replace('@','')}" target="_blank" rel="noreferrer">📸 ${e.instagram}</a>`);
+    }
+    if (e.linkedin) {
+      links.push(`<a class="link-pill" href="${e.linkedin}" target="_blank" rel="noreferrer">💼 LinkedIn</a>`);
+    }
+    if (e.site) {
+      links.push(`<a class="link-pill" href="${e.site}" target="_blank" rel="noreferrer">🌐 Site</a>`);
+    }
+
+    return links.length ? `<div class="links-row">${links.join('')}</div>` : '';
+  }
+
+  // Enter para buscar
+  document.addEventListener('DOMContentLoaded', () => {
+    ['inp-regiao','inp-setor'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') buscar();
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

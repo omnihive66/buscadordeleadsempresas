@@ -1,0 +1,24 @@
+# Dependências
+node_modules/
+prospector-backend/node_modules/
+
+# Variáveis de ambiente — NUNCA commitar chaves!
+.env
+prospector-backend/.env
+
+# Arquivos gerados (Excel exportados)
+prospector-backend/exports/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
+
+# Vercel
+.vercel/
