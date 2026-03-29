@@ -89,7 +89,10 @@ function gerarExcel(empresas, regiao, setor) {
   XLSX.utils.book_append_sheet(wb, ws2, 'Contatos Prioritários');
 
   // ── Salvar ────────────────────────────────────────────────────────────────
-  const exportDir = path.join(__dirname, 'exports');
+  // Vercel: sistema de arquivos read-only — só /tmp aceita escrita
+  const exportDir = (process.env.VERCEL || process.env.NODE_ENV === 'production')
+    ? '/tmp'
+    : path.join(__dirname, 'exports');
   if (!fs.existsSync(exportDir)) fs.mkdirSync(exportDir, { recursive: true });
 
   const timestamp   = new Date().toISOString().slice(0, 10);

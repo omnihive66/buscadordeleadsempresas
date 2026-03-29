@@ -22,10 +22,15 @@ const PORT = process.env.PORT || 3001;
 // BASE_URL para gerar links de download — configur em produção
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
+// Vercel: sistema de arquivos read-only — arquivos Excel vão para /tmp
+const EXPORT_DIR = (process.env.VERCEL || process.env.NODE_ENV === 'production')
+  ? '/tmp'
+  : path.join(__dirname, 'exports');
+
 // ── Middlewares ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-app.use('/exports', express.static(path.join(__dirname, 'exports')));
+app.use('/exports', express.static(EXPORT_DIR));
 
 // ── Validação das chaves na inicialização ─────────────────────────────────────
 function chaveNvidiaValida() {
@@ -187,7 +192,7 @@ app.post('/buscar', async (req, res) => {
 
 // ── Rota: download direto ─────────────────────────────────────────────────────
 app.get('/download/:arquivo', (req, res) => {
-  const caminho = path.join(__dirname, 'exports', req.params.arquivo);
+  const caminho = path.join(EXPORT_DIR, req.params.arquivo);
   res.download(caminho, (err) => {
     if (err) res.status(404).json({ erro: 'Arquivo não encontrado' });
   });
