@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "prospector-backend/server.js": {
+      "maxDuration": 60
+    }
+  },
   "builds": [
     {
       "src": "prospector-backend/server.js",

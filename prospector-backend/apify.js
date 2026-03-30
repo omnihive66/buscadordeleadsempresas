@@ -14,7 +14,7 @@ function apifyHabilitado() {
 /**
  * Executa um actor do Apify de forma síncrona e retorna os itens do dataset
  */
-async function runActor(actorId, input, timeoutSecs = 150) {
+async function runActor(actorId, input, timeoutSecs = 20) {
   const url = `${APIFY_BASE}/${actorId}/run-sync-get-dataset-items`;
   try {
     const { data } = await axios.post(url, input, {
@@ -49,12 +49,12 @@ async function buscarNoGoogleMaps(regiao, setor) {
     const resultados = await runActor('compass~crawler-google-places', {
       searchStringsArray: [setor],
       locationQuery: regiao,
-      maxCrawledPlacesPerSearch: 25,
+      maxCrawledPlacesPerSearch: 10,
       language: 'pt-BR',
       countryCode: 'br',
       // scrapeContacts removido — causa run de 0 itens em 8s no plano FREE
       skipClosedPlaces: false,
-    }, 180);
+    }, 22);
 
     const empresas = resultados
       .filter(r => r.title)
@@ -124,8 +124,8 @@ async function buscarEmpresasLinkedIn(regiao, setor) {
     const resultados = await runActor('harvestapi~linkedin-company-search', {
       searchQuery: `${setor} ${regiao}`,
       scraperMode: 'full',
-      maxItems: 20,
-    }, 150);
+      maxItems: 8,
+    }, 18);
 
     const empresas = resultados
       .filter(r => r.name)
@@ -172,7 +172,7 @@ async function buscarResponsaveisLinkedIn(linkedinUrls, regiao) {
   if (!apifyHabilitado()) return new Map();
   if (!linkedinUrls || linkedinUrls.length === 0) return new Map();
 
-  const urls = linkedinUrls.slice(0, 10);
+  const urls = linkedinUrls.slice(0, 3); // máximo 3 no Vercel 60s
   console.log(`[apify/linkedin] Buscando responsáveis de ${urls.length} empresa(s)`);
 
   try {
@@ -181,10 +181,10 @@ async function buscarResponsaveisLinkedIn(linkedinUrls, regiao) {
       seniorityLevelIds: ['220', '300', '310', '320'],
       locations: [regiao, 'Brazil'],
       profileScraperMode: 'Short ($4 per 1k)',
-      maxItems: 60,
+      maxItems: 15,
       companyBatchMode: 'one_by_one',
-      maxItemsPerCompany: 6,
-    }, 240);
+      maxItemsPerCompany: 5,
+    }, 15);
 
     const mapa = new Map();
     for (const r of resultados) {

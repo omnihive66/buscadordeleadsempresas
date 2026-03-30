@@ -100,7 +100,7 @@ app.post('/buscar', async (req, res) => {
           return [maps, linkedin];
         })(),
       ]),
-      350_000,
+      55_000,
       'busca de dados'
     );
 
